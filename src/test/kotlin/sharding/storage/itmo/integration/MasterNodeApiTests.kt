@@ -2,17 +2,11 @@ package sharding.storage.itmo.integration
 
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
-import org.hamcrest.Matchers.containsString
-import org.hamcrest.Matchers.greaterThanOrEqualTo
-import org.hamcrest.Matchers.notNullValue
-import org.hamcrest.core.IsEqual.equalTo
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
+import org.hamcrest.Matchers.*
 import org.springframework.boot.test.context.SpringBootTest
 import sharding.storage.itmo.integration.model.ChangeShardRequest
 import sharding.storage.itmo.integration.model.NodeRequest
-
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
@@ -21,12 +15,12 @@ class MasterNodeApiTests {
     private val masterBaseUrl = "http://localhost:9090"
 
     @BeforeAll
-    fun setup() {
+    fun setupRestAssuredBaseUri() {
         RestAssured.baseURI = masterBaseUrl
     }
 
     @Test
-    fun `health check возвращает OK`() {
+    fun healthCheckReturnsOk() {
         RestAssured
             .get("/health")
             .then()
@@ -36,7 +30,7 @@ class MasterNodeApiTests {
     }
 
     @Test
-    fun `добавление storage-ноды в пул`() {
+    fun addStorageNode() {
         val node = NodeRequest(address = "localhost:8085")
         RestAssured
             .given()
@@ -49,8 +43,8 @@ class MasterNodeApiTests {
     }
 
     @Test
-    fun `удаление storage-ноды из пула`() {
-        // Сначала добавить, чтобы было что удалять
+    fun removeStorageNode() {
+        // Ensure node exists before trying to remove
         val node = NodeRequest(address = "localhost:8086")
         RestAssured
             .given()
@@ -60,7 +54,6 @@ class MasterNodeApiTests {
             .then()
             .statusCode(200)
 
-        // Теперь удаляем
         RestAssured
             .delete("/scheme/localhost:8086")
             .then()
@@ -69,7 +62,7 @@ class MasterNodeApiTests {
     }
 
     @Test
-    fun `получение схемы узлов`() {
+    fun getClusterScheme() {
         RestAssured
             .get("/scheme")
             .then()
@@ -80,7 +73,7 @@ class MasterNodeApiTests {
     }
 
     @Test
-    fun `изменение числа шардов`() {
+    fun updateShardCount() {
         val req = ChangeShardRequest(shardCount = 4)
         RestAssured
             .given()
